@@ -16,16 +16,17 @@ class Role(models.Model):
 
 
 # Пользователи
-class User(models.Model):
+class Users(models.Model):
     email = models.EmailField(max_length=254, unique=True, verbose_name=_("Email"))
     first_name = models.CharField(max_length=50, verbose_name=_("First Name"))
     last_name = models.CharField(max_length=50, verbose_name=_("Last Name"))
     password = models.CharField(max_length=128, verbose_name=_("Password"))
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, verbose_name=_("Role"))
     is_active = models.BooleanField(default=True, verbose_name=_("Is Active"))
+    is_staff = models.BooleanField(default=False, verbose_name=_("Is Staff"))  # Добавьте это
 
     class Meta:
-        verbose_name = _("User")
+        verbose_name = _("Users")
         verbose_name_plural = _("Users")
 
     def __str__(self):
@@ -34,7 +35,7 @@ class User(models.Model):
 
 # Сессии
 class Session(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("User"))
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, verbose_name=_("Users"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     session_token = models.CharField(max_length=255, unique=True, verbose_name=_("Session Token"))
 
@@ -67,7 +68,7 @@ class Request(models.Model):
         RESOLVED = "RESOLVED", _("Resolved")
         CLOSED = "CLOSED", _("Closed")
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("User"))
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, verbose_name=_("User"))
     category = models.ForeignKey(RequestCategory, on_delete=models.SET_NULL, null=True, verbose_name=_("Category"))
     description = models.TextField(verbose_name=_("Description"))
     status = models.CharField(
@@ -104,8 +105,8 @@ class RequestAttachment(models.Model):
 # Чат
 class ChatMessage(models.Model):
     request = models.ForeignKey(Request, on_delete=models.CASCADE, related_name="messages", verbose_name=_("Request"))
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages", verbose_name=_("Sender"))
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_messages", verbose_name=_("Recipient"))
+    sender = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="sent_messages", verbose_name=_("Sender"))
+    recipient = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="received_messages", verbose_name=_("Recipient"))
     message = models.TextField(verbose_name=_("Message"))
     sent_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Sent At"))
     attachment = models.FileField(upload_to="chat_attachments/", null=True, blank=True, verbose_name=_("Attachment"))
