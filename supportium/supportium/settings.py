@@ -35,7 +35,9 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'api',
+    
     'rest_framework',
     'corsheaders',
     'django.contrib.admin',
@@ -117,6 +119,15 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],  # Redis должен быть установлен и запущен
+        },
+    },
+}
+
 
 
 # Internationalization
@@ -143,3 +154,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Cros headers 
 CORS_ALLOW_ALL_ORIGINS = True
+ASGI_APPLICATION = "supportium.asgi.application"

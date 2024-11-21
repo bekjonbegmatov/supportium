@@ -54,6 +54,17 @@ class LogoutView(APIView):
         
         return Response({"error": "Invalid token"}, status=401)
     
+class ChatAi(APIView):
+    def post(self, request):
+        token = request.headers.get("Authorization")
+        if not token:
+            return Response({"error": "No token provided"}, status=400)
+        session = Session.objects.filter(session_token=token).first()
+        user = Users.objects.get(id=session.user.id)
+        
+        
+        
+    
 # get routes/methods
 @api_view(['GET'])
 def get_routes(request):
