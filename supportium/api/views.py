@@ -1,20 +1,56 @@
-# Django Imports
+import requests
+import uuid
+import hashlib
 from django.shortcuts import render
-
-# Rest Framework 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
-from rest_framework.response import Response
+from test import data
 from .serializers import RegisterSerializer
-
-# Custom Models Import 
+from .models import Users, Session, AIChat, Request, RequestCategory
 from api.consts import routes
-from .models import Users, Session
+from django.shortcuts import get_object_or_404
 
-import uuid
-import hashlib
+# OpenAI API Config
+API_KEY = "sk-0F553L14lPVPjEIEtix8uB6bWY8q4mLa"
+URL = "https://api.proxyapi.ru/openai/v1/chat/completions"
+HEADERS = {
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {API_KEY}",
+}
 
+
+# Chat API Helper
+def chat_api(context):
+    # Инициализируем системное сообщение
+    n_context = [
+        {"role": "system", "content": '''Supportium AI — виртуальный помощник для студентов и сотрудников ВСГУТУ. Он отвечает только на вопросы, связанные с обучением и деятельностью университета. Бот предоставляет информацию о факультетах, кафедрах, расписании занятий, местоположении аудиторий и контактах преподавателей. Он помогает в подаче заявлений, уточняет тип документа (например, заявление на академический отпуск, восстановление, перевод) и сообщает, какие данные и документы нужно предоставить.
+Бот также готов сгенерировать случайные данные (например, электронную почту) по запросу пользователя. Он не игнорирует предоставленные данные и точно выполняет запросы, связанные с учебным процессом и административными вопросами университета. Supportium AI ориентирован на быструю и удобную помощь в рамках учебных задач.
+ И ещё старайся отвечать более коротко если есть такой необходимость потому что не надо большой текст писать Если есть возможность используй и напиши короткий ответ'''}
+    ]
+
+    # Объединяем системное сообщение с пользовательским контекстом
+    n_context.extend(context)
+
+    # Формируем данные для запроса
+    data = {
+        "model": "gpt-3.5-turbo",
+        "messages": n_context
+    }
+
+    # Выполняем запрос к OpenAI API
+    try:
+        response = requests.post(URL, headers=HEADERS, json=data)
+        if response.status_code == 200:
+            response_json = response.json()
+            return response_json.get("choices", [{}])[0].get("message", {}).get("content", "Ошибка обработки ответа.")
+        else:
+            return f"Error: {response.status_code}, {response.text}"
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+
+# Register View
 class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -23,6 +59,7 @@ class RegisterView(APIView):
             return Response({"message": "Registration successful", "token": data["token"]})
         return Response(serializer.errors, status=400)
 
+# Login View
 class LoginView(APIView):
     def post(self, request):
         email = request.data.get("email")
@@ -41,6 +78,7 @@ class LoginView(APIView):
             return Response({"message": "Login successful", "token": session_token})
         return Response({"message": "Invalid credentials"}, status=401)
 
+# Logout View
 class LogoutView(APIView):
     def post(self, request):
         token = request.headers.get("Authorization")
@@ -53,17 +91,9 @@ class LogoutView(APIView):
             return Response({"message": "Successfully logged out"})
         
         return Response({"error": "Invalid token"}, status=401)
-    
-class ChatAi(APIView):
-    def post(self, request):
-        token = request.headers.get("Authorization")
-        if not token:
-            return Response({"error": "No token provided"}, status=400)
-        session = Session.objects.filter(session_token=token).first()
-        user = Users.objects.get(id=session.user.id)
-        
 
-class UserViev(APIView):
+# User View
+class UserView(APIView):
     def get(self, request):
         token = request.headers.get("Authorization")
         if not token:
@@ -72,18 +102,150 @@ class UserViev(APIView):
         if session:
             user = session.user
             data = {
-                'email' : user.email,
-                'name' : user.first_name,
-                'last_name' : user.last_name,
+                'email': user.email,
+                'name': user.first_name,
+                'last_name': user.last_name,
+                'is_staff' : user.is_staff
             }
             return Response(data=data)
         
-        return Response({"error": "Invalid token"}, status=401)  
+        return Response({"error": "Invalid token"}, status=401)
 
-        
+# Chat with AI View
+class ChatWithAI(APIView):
+    def get(self, request):
+        token = request.headers.get("Authorization")
+        if not token:
+            return Response({"error": "Bad request"}, status=400)
+        session = Session.objects.filter(session_token=token).first()
+        if session:
+            user = session.user 
+            user_chats = AIChat.objects.filter(sender=user)
+            if len(user_chats) > 0:
+                data = [
+                    {
+                        "role": chat.role,
+                        "message": chat.message
+                    } 
+                    for chat in user_chats
+                ]
+            else:
+                data = [
+                    {
+                        'role' : "assistant",
+                        "message": 'Привет я Supportium Ai умный помощник что тебе надо ?'
+                    },
+                ]
+            return Response(data=data)
+        return Response({"error": "Invalid token"}, status=401) 
     
-# get routes/methods
+    def post(self, request):
+        token = request.headers.get("Authorization")
+        if not token:
+            return Response({"error": "No token provided"}, status=400)
+        
+        context = request.data.get("context")
+        if not context:
+            return Response({"error": "No context provided"}, status=400)
+
+        session = Session.objects.filter(session_token=token).first()
+        if session:
+            user = session.user
+            
+            # Формируем запрос к API
+            formatted_context = [
+                {"role": msg.get("role"), "content": msg.get("message")}
+                for msg in context
+            ]
+            response_message = chat_api(formatted_context)
+            
+            # Сохранение сообщений в базе данных
+            for msg in context:
+                AIChat.objects.create(
+                    sender=user,
+                    role=msg["role"],
+                    message=msg["message"]
+                )
+            AIChat.objects.create(
+                sender=user,
+                role="assistant",
+                message=response_message
+            )
+            
+            return Response({"assistant": response_message})
+        
+        return Response({"error": "Invalid token"}, status=401)
+
+
+#! Requests
+
+class ReqestsView(APIView):
+    def get(self, request):
+        token = request.headers.get("Authorization")
+        if not token:
+            return Response({"error": "No token provided"}, status=400)
+        session = Session.objects.filter(session_token=token).first()
+        if session:
+            user = session.user
+            if user.is_staff:
+                user_requests = Request.objects.all()
+            else:
+                user_requests = Request.objects.filter(user = user)
+            data = [
+                {
+                    'id' : req.id, 
+                    'category' : req.category.description,
+                    'text' : req.description,
+                    'status' : req.status,
+                    'created' : req.created_at,
+                } 
+                for req in user_requests
+            ]
+            return Response(data=data)
+        return Response({"error": "Invalid token"}, status=401)
+    def post(self, request):
+            token = request.headers.get("Authorization")
+            if not token:
+                return Response({"error": "No token provided"}, status=400)
+            
+            session = Session.objects.filter(session_token=token).first()
+            if not session:
+                return Response({"error": "Invalid token"}, status=401)
+            
+
+            data = request.data.get("data")
+            if not data:
+                return Response({"error": "Invalid payload"}, status=400)
+
+            category_id = data.get("category")
+            text = data.get("text")
+            
+            if not category_id or not text:
+                return Response({"error": "Category and text are required"}, status=400)
+            
+            # Resolve the category_id to a RequestCategory instance
+            category = get_object_or_404(RequestCategory, id=category_id)
+
+            req = Request(
+                user=session.user,
+                category=category,  # Assign the resolved instance
+                description=text,
+                status='PENDING'
+            )
+            req.save()
+
+            return Response({"message": "Request created successfully"}, status=201)
+    
+@api_view(['GET'])
+def get_requests_category(request):
+    data = [
+        {"id" : cat.id, "description" : cat.description}
+        for cat in RequestCategory.objects.all()
+    ]
+    return Response(data=data)
+
+
+# Get Routes
 @api_view(['GET'])
 def get_routes(request):
     return Response(routes)
-

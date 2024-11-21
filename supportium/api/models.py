@@ -117,3 +117,16 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender.email} to {self.recipient.email}"
+
+class AIChat(models.Model):
+    sender = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="messages", verbose_name=_("Request"))
+    message = models.TextField(verbose_name=_("Message"))
+    role = models.CharField(verbose_name=_("Message"), max_length=50)
+    sent_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Sent At"))
+    
+    class Meta:
+        verbose_name = _("Ai Chat Message")
+        verbose_name_plural = _("Ai Chat Messages")
+        
+    
+    

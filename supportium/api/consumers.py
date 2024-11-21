@@ -7,6 +7,7 @@ from asgiref.sync import sync_to_async
 @sync_to_async(thread_sensitive=True)
 def save_message_to_db(room_name, sender_email, recipient_email, message):
     from .models import ChatMessage, Users, Request  # Импорт внутри функции
+    
     sender = Users.objects.get(email=sender_email)
     recipient = Users.objects.get(email=recipient_email)
     
