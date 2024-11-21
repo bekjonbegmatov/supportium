@@ -18,6 +18,7 @@ function Profile(props) {
                     setDana(data)
                     setFetched(true)
                     setE(data.email[0].toUpperCase())
+                    localStorage.setItem('staf',data.is_staff)
                 } else {
                     alert('Something went wrong during registration.');
                 }

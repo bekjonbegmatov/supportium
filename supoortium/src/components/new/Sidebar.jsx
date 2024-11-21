@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FaComments, FaChevronCircleLeft, FaLifeRing, FaUserPlus, FaSignInAlt,FaRegUserCircle } from "react-icons/fa";
+import { FaComments, FaColumns, FaChevronCircleLeft, FaLifeRing, FaUserPlus, FaSignInAlt,FaRegUserCircle } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 
 
@@ -46,9 +46,17 @@ const Sidebar = (props) => {
               className="flex items-center p-2 text-gray-900 rounded-lg text-xxl font-bold hover:bg-gray-200 group"
             >
               <FaLifeRing className="mr-3 text-lg" />
-              Statement
+              Обращение
             </Link>
+
           </li>
+          {localStorage.getItem('staf') && 
+            <li>
+              <Link to="/admin_panel" className="flex items-center p-2 text-gray-900 rounded-lg text-xxl font-bold hover:bg-gray-200 group">
+                <FaColumns  className="mr-3 text-lg" /> Админ
+              </Link>
+            </li>
+          }
           {localStorage.getItem('authToken') ? (
             <div>
                 <li>

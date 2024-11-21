@@ -12,6 +12,7 @@ import Statement from './components/statement/statement';
 import Profile from './components/profile/profile';
 
 import AiChat from './components/chat/chat_with_ai';
+import Admin from './components/admin/admin';
 
 function App() {
 
@@ -35,6 +36,7 @@ function App() {
           <Route path='/profile' element={<Profile server_url={server_url} />} />
           
           <Route path='/aichat' element={<AiChat server_url={server_url} />} />
+          <Route path='/admin_panel' element={<Admin server_url={server_url} />} />
 
         </Routes>
       </div>
