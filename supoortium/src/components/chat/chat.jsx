@@ -9,7 +9,7 @@ function ChatBlock() {
 
   useEffect(() => {
     // Устанавливаем WebSocket-соединение
-    const socket = new WebSocket("ws://127.0.0.1:8000/ws/chat/1/"); // Замените 10 на ваш room_name
+    const socket = new WebSocket("ws://10.15.91.122:8000/ws/chat/1/"); // Замените 10 на ваш room_name
     console.log('Conected');
     
     setWs(socket);
@@ -50,8 +50,8 @@ function ChatBlock() {
   const handleSendMessage = () => {
     if (input.length >= 1 && ws) {
       const messageData = {
-        sender: "user1@user.tj", // Замените на динамический email пользователя
-        recipient: "user2@user.tj", // Замените на email получателя
+        sender: "user2@user.tj", // Замените на динамический email пользователя
+        recipient: "user1@user.tj", // Замените на email получателя
         message: input,
       };
 
@@ -75,17 +75,17 @@ function ChatBlock() {
               <div
                 key={index}
                 className={`flex ${
-                  message.sender === "user" ? "justify-end" : "justify-start"
+                  message.sender === "user2@user.tj" ? "justify-end" : "justify-start"
                 }`}
               >
                 <div
                   className={`${
-                    message.sender === "user"
+                    message.sender === "user2@user.tj"
                       ? "bg-blue-500 text-white"
                       : "bg-gray-300 text-gray-800"
                   } p-3 rounded-lg max-w-sm`}
                 >
-                  {message.text}
+                  {message.text} {message.sender}
                 </div>
               </div>
             ))}
