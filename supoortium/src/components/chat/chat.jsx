@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 function ChatBlock() {
   const [messages, setMessages] = useState([
@@ -6,6 +6,21 @@ function ChatBlock() {
   ]);
   const [input, setInput] = useState("");
   const [ws, setWs] = useState(null); // Хранение WebSocket-соединения
+  const messagesEndRef = useRef(null); // Реф для прокрутки
+
+  const currentUser = "user2@user.tj"; // Укажите текущего пользователя
+
+  // Функция для прокрутки вниз
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    // Прокручиваем вниз при каждом изменении сообщений
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     // Устанавливаем WebSocket-соединение
@@ -25,7 +40,7 @@ function ChatBlock() {
       } else if (data.type === "chat_history") {
         const history = data.messages.map((msg) => ({
           text: msg.message,
-          sender: msg.sender === "user" ? "user" : "support",
+          sender: msg.sender,
         }));
         setMessages((prevMessages) => [...history, ...prevMessages]);
       }
@@ -50,13 +65,12 @@ function ChatBlock() {
   const handleSendMessage = () => {
     if (input.length >= 1 && ws) {
       const messageData = {
-        sender: "user2@user.tj", // Замените на динамический email пользователя
+        sender: currentUser,
         recipient: "user1@user.tj", // Замените на email получателя
         message: input,
       };
 
       ws.send(JSON.stringify(messageData)); // Отправка сообщения через WebSocket
-      setMessages([...messages, { text: input, sender: "user" }]); // Добавляем сообщение в список
       setInput("");
     }
   };
@@ -75,20 +89,22 @@ function ChatBlock() {
               <div
                 key={index}
                 className={`flex ${
-                  message.sender === "user2@user.tj" ? "justify-end" : "justify-start"
+                  message.sender === currentUser ? "justify-end" : "justify-start"
                 }`}
               >
                 <div
                   className={`${
-                    message.sender === "user2@user.tj"
+                    message.sender === currentUser
                       ? "bg-blue-500 text-white"
                       : "bg-gray-300 text-gray-800"
                   } p-3 rounded-lg max-w-sm`}
                 >
-                  {message.text} {message.sender}
+                  {message.text}
                 </div>
               </div>
             ))}
+            {/* Элемент для прокрутки вниз */}
+            <div ref={messagesEndRef}></div>
           </div>
         )}
       </div>
