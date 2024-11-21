@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-function ChatBlock() {
+function ChatBlock(props) {
   const [messages, setMessages] = useState([
     { text: "Добро пожаловать в Supportium я AI ассистент и готов вам помочь задавайте ваши вопросы", sender: "support" },
   ]);
@@ -24,7 +24,7 @@ function ChatBlock() {
 
   useEffect(() => {
     // Устанавливаем WebSocket-соединение
-    const socket = new WebSocket("ws://10.15.91.122:8000/ws/chat/1/"); // Замените 10 на ваш room_name
+    const socket = new WebSocket(`${props.wecoket_url}/ws/chat/1/`); // Замените 10 на ваш room_name
     console.log('Conected');
     
     setWs(socket);

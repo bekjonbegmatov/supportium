@@ -1,9 +1,28 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FaComments, FaChevronCircleLeft, FaLifeRing, FaUserPlus, FaSignInAlt,FaRegUserCircle } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
 
 
-const Sidebar = () => {
+const Sidebar = (props) => {
+  const navigate = useNavigate();
+  function log_out(){
+    if (localStorage.getItem('authToken')){
+      let conf = window.confirm('действительно хотите выйти из аккаунта')
+      if (conf){
+        fetch("", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json;charset=utf-8',
+            'Authorization': localStorage.getItem('authToken')
+          }
+        })
+        localStorage.removeItem('authToken')
+        navigate('/');
+        window.location.reload()
+      }
+    }
+  }
   return (
     <aside
       id="logo-sidebar"
@@ -46,7 +65,7 @@ const Sidebar = () => {
                     
                     className="flex items-center p-2 text-gray-900 rounded-lg text-xxl font-bold hover:bg-gray-200 group"
                     >
-                    <FaChevronCircleLeft className="mr-3 text-lg" /> 
+                    <FaChevronCircleLeft onClick={log_out} className="mr-3 text-lg" /> 
                     Выйти
                     </button>
                 </li>

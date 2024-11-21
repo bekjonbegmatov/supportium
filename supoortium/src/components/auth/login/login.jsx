@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-function Login() {
+function Login(props) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
@@ -35,7 +35,7 @@ function Login() {
                 email: email,
                 password: password,
             };
-            axios.post('http://127.0.0.1:8000/login/', data)
+            axios.post(`${props.server_url}/login/`, data)
             .then(response => {
                 if (response.status === 200 || response.status === 201) {
                     // Сохраняем токен в localStorage
@@ -66,6 +66,7 @@ function Login() {
             <br /><br /><br /><br />
             <h1 className="bold text-5xl">
                 <strong>Авторизация</strong>
+                {`${props.server_url}/login/`}
             </h1>
             {error && (
                 <div>
