@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-from .views import RegisterView, LoginView, LogoutView
+from .views import RegisterView, LoginView, LogoutView, UserViev
 
 urlpatterns = [
     path('', views.get_routes),
@@ -11,4 +11,6 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     # path('chat/ai/', )
+    path('who/am/i', UserViev.as_view(), name="Who am I"),
+    
 ]

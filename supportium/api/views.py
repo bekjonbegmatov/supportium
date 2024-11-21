@@ -62,7 +62,24 @@ class ChatAi(APIView):
         session = Session.objects.filter(session_token=token).first()
         user = Users.objects.get(id=session.user.id)
         
+
+class UserViev(APIView):
+    def get(self, request):
+        token = request.headers.get("Authorization")
+        if not token:
+            return Response({"error": "No token provided"}, status=400)
+        session = Session.objects.filter(session_token=token).first()
+        if session:
+            user = session.user
+            data = {
+                'email' : user.email,
+                'name' : user.first_name,
+                'last_name' : user.last_name,
+            }
+            return Response(data=data)
         
+        return Response({"error": "Invalid token"}, status=401)  
+
         
     
 # get routes/methods
