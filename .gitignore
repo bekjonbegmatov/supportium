@@ -7,8 +7,9 @@
 
 # Icon must end with two \r
 Icon
+client.html
 
-
+.vscode
 # Thumbnails
 ._*
 
@@ -22,8 +23,8 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
-
-
+test.py
+dump.rdb
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
