@@ -78,6 +78,7 @@ function ChatBlock(props) {
   return (
     <div className="h-screen flex flex-col">
       {/* Сообщения */}
+      <br /><br /><br /><br />
       <div className="flex-1 p-4 overflow-y-auto ">
         {messages.length === 0 ? (
           <div className="text-gray-500 text-center mt-20">

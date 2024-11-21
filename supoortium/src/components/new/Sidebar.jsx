@@ -33,7 +33,7 @@ const Sidebar = (props) => {
         <ul className="space-y-2 font-medium">
           <li>
             <Link
-              to="/chat"
+              to="/aichat"
               className="flex items-center p-2 text-gray-900 rounded-lg text-xxl font-bold hover:bg-gray-200 group"
             >
               <FaComments className="mr-3 text-lg" />
@@ -42,11 +42,11 @@ const Sidebar = (props) => {
           </li>
           <li>
             <Link
-              to="/support"
+              to="/statement"
               className="flex items-center p-2 text-gray-900 rounded-lg text-xxl font-bold hover:bg-gray-200 group"
             >
               <FaLifeRing className="mr-3 text-lg" />
-              Support
+              Statement
             </Link>
           </li>
           {localStorage.getItem('authToken') ? (

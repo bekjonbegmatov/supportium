@@ -66,7 +66,6 @@ function Login(props) {
             <br /><br /><br /><br />
             <h1 className="bold text-5xl">
                 <strong>Авторизация</strong>
-                {`${props.server_url}/login/`}
             </h1>
             {error && (
                 <div>
