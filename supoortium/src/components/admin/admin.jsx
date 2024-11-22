@@ -8,10 +8,10 @@ function Admin(props) {
   const [requests, setRequests] = useState();
   const [loaded, setLoaded] = useState(false);
 
-  const [chatData, setChatData] = useState(null); // Данные чата
+  const [chatData, setChatData] = useState(null); 
 
   const handleOpenChat = (roomName, recipientEmail) => {
-    setChatData({ roomName, recipientEmail }); // Сохраняем данные чата
+    setChatData({ roomName, recipientEmail });
   };
 
   useEffect(() => {
@@ -28,7 +28,6 @@ function Admin(props) {
         );
         setRequests(requestResponse.data);
 
-        // Устанавливаем флаг завершения загрузки
         setLoaded(true);
       } catch (error) {
         console.error("Ошибка при загрузке данных:", error);
@@ -49,7 +48,7 @@ function Admin(props) {
               <br />
               {requests?.map((val, i) => {
                 return (
-                  <AdminList onOpenChat={handleOpenChat} className="" key={i} sanoq={i + 1} dana={val} />
+                  <AdminList server_url={props.server_url} onOpenChat={handleOpenChat} className="" key={i} sanoq={i + 1} dana={val} />
                 );
               })}
             </div>

@@ -42,7 +42,7 @@ const Sidebar = (props) => {
             </Link>
           </li>
 
-          {localStorage.getItem('staf') ? (
+          {localStorage.getItem('staf') === "true" ? (
             <li>
             <Link to="/admin_panel" className="flex items-center p-2 text-gray-900 rounded-lg text-xxl font-bold hover:bg-gray-200 group">
               <FaColumns  className="mr-3 text-lg" /> Админ
