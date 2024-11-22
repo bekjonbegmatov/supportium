@@ -36,7 +36,7 @@ function App() {
           <Route path='/profile' element={<Profile server_url={server_url} />} />
           
           <Route path='/aichat' element={<AiChat server_url={server_url} />} />
-          <Route path='/admin_panel' element={<Admin server_url={server_url} />} />
+          <Route path='/admin_panel' element={<Admin wecoket_url={wecoket_url} server_url={server_url} />} />
 
         </Routes>
       </div>

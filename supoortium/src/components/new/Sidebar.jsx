@@ -18,6 +18,7 @@ const Sidebar = (props) => {
           }
         })
         localStorage.removeItem('authToken')
+        localStorage.removeItem('staf')
         navigate('/');
         window.location.reload()
       }
@@ -40,7 +41,15 @@ const Sidebar = (props) => {
               Чат AI
             </Link>
           </li>
-          <li>
+
+          {localStorage.getItem('staf') ? (
+            <li>
+            <Link to="/admin_panel" className="flex items-center p-2 text-gray-900 rounded-lg text-xxl font-bold hover:bg-gray-200 group">
+              <FaColumns  className="mr-3 text-lg" /> Админ
+            </Link>
+          </li>
+          ):(
+            <li>
             <Link
               to="/statement"
               className="flex items-center p-2 text-gray-900 rounded-lg text-xxl font-bold hover:bg-gray-200 group"
@@ -50,12 +59,8 @@ const Sidebar = (props) => {
             </Link>
 
           </li>
-          {localStorage.getItem('staf') && 
-            <li>
-              <Link to="/admin_panel" className="flex items-center p-2 text-gray-900 rounded-lg text-xxl font-bold hover:bg-gray-200 group">
-                <FaColumns  className="mr-3 text-lg" /> Админ
-              </Link>
-            </li>
+          )
+
           }
           {localStorage.getItem('authToken') ? (
             <div>

@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 
-function ChatBlock({ websocketUrl, recipientEmail }) {
+function ChatClient({ websocketUrl, roomName, currentUserEmail }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [ws, setWs] = useState(null);
   const messagesEndRef = useRef(null);
 
-  const currentUser = "behruz@b.ru"; // Укажите email администратора
-
-  // Прокрутка вниз при новом сообщении
+  // Прокрутка вниз при добавлении новых сообщений
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -21,12 +19,13 @@ function ChatBlock({ websocketUrl, recipientEmail }) {
 
   // Подключение к WebSocket
   useEffect(() => {
-    const socket = new WebSocket(websocketUrl);
+    const socket = new WebSocket(`${websocketUrl}/ws/chat/${roomName}/`);
     setWs(socket);
 
-    // Получение данных
+    // Получение сообщений
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
+
       if (data.type === "chat_message") {
         setMessages((prevMessages) => [
           ...prevMessages,
@@ -41,23 +40,22 @@ function ChatBlock({ websocketUrl, recipientEmail }) {
       }
     };
 
-    // Закрытие WebSocket
     socket.onclose = () => console.log("WebSocket закрыт.");
     socket.onerror = (error) => console.error("WebSocket ошибка:", error);
 
     return () => socket.close();
-  }, [websocketUrl]);
+  }, [websocketUrl, roomName]);
 
-  // Отправка сообщения
+  // Отправка сообщений
   const handleSendMessage = () => {
     if (input && ws) {
       const messageData = {
-        sender: currentUser,
-        recipient: recipientEmail,
+        sender: currentUserEmail,
+        recipient: "behruz@b.ru", // Замените на email администратора
         message: input,
       };
 
-      ws.send(JSON.stringify(messageData)); // Отправляем через WebSocket
+      ws.send(JSON.stringify(messageData)); // Отправляем сообщение через WebSocket
       setInput("");
     }
   };
@@ -70,13 +68,13 @@ function ChatBlock({ websocketUrl, recipientEmail }) {
           <div
             key={index}
             className={`flex ${
-              message.sender === currentUser ? "justify-end" : "justify-start"
+              message.sender === currentUserEmail ? "justify-end" : "justify-start"
             }`}
           >
             <div
               className={`${
-                message.sender === currentUser
-                  ? "bg-blue-500 text-white"
+                message.sender === currentUserEmail
+                  ? "bg-green-500 text-white"
                   : "bg-gray-300 text-gray-800"
               } p-3 rounded-lg my-1 max-w-sm`}
             >
@@ -98,12 +96,12 @@ function ChatBlock({ websocketUrl, recipientEmail }) {
               handleSendMessage();
             }
           }}
-          placeholder="Напишите сообщение..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+          placeholder="Введите сообщение..."
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-green-300"
         />
         <button
           onClick={handleSendMessage}
-          className="ml-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+          className="ml-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
         >
           Отправить
         </button>
@@ -112,4 +110,4 @@ function ChatBlock({ websocketUrl, recipientEmail }) {
   );
 }
 
-export default ChatBlock;
+export default ChatClient;
