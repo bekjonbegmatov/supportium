@@ -7,9 +7,11 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from test import data
 from .serializers import RegisterSerializer
-from .models import Users, Session, AIChat, Request, RequestCategory
+from .models import Users, Session, AIChat, Request, RequestCategory,ChatMessage
 from api.consts import routes
 from django.shortcuts import get_object_or_404
+
+from django.db.models import Case, When, IntegerField
 
 # OpenAI API Config
 API_KEY = "sk-0F553L14lPVPjEIEtix8uB6bWY8q4mLa"
@@ -184,25 +186,40 @@ class ReqestsView(APIView):
         token = request.headers.get("Authorization")
         if not token:
             return Response({"error": "No token provided"}, status=400)
+        
         session = Session.objects.filter(session_token=token).first()
         if session:
             user = session.user
+
+            # Создаем аннотацию для приоритета по статусу
+            priority_annotation = Case(
+                When(status=Request.RequestStatus.PENDING, then=1),
+                When(status=Request.RequestStatus.IN_PROGRESS, then=2),
+                When(status=Request.RequestStatus.RESOLVED, then=3),
+                When(status=Request.RequestStatus.CLOSED, then=4),
+                default=5,  # Низший приоритет
+                output_field=IntegerField(),
+            )
+
             if user.is_staff:
-                user_requests = Request.objects.all()
+                user_requests = Request.objects.annotate(priority=priority_annotation).order_by('priority', 'created_at')
             else:
-                user_requests = Request.objects.filter(user = user)
+                user_requests = Request.objects.filter(user=user).annotate(priority=priority_annotation).order_by('priority', 'created_at')
+
             data = [
                 {
-                    'id' : req.id, 
-                    'category' : req.category.description,
-                    'text' : req.description,
-                    'status' : req.status,
-                    'created' : req.created_at,
-                } 
+                    'id': req.id,
+                    'category': req.category.description,
+                    'text': req.description,
+                    'email': req.user.email,
+                    'status': req.status,
+                    'created': req.created_at,
+                }
                 for req in user_requests
             ]
             return Response(data=data)
         return Response({"error": "Invalid token"}, status=401)
+    
     def post(self, request):
             token = request.headers.get("Authorization")
             if not token:
@@ -233,7 +250,14 @@ class ReqestsView(APIView):
                 status='PENDING'
             )
             req.save()
-
+            
+            chat_message = ChatMessage(
+                request = req,
+                sender = session.user,
+                recipient = Users.objects.get(email="behruz@b.ru"),
+                message = text,
+            )
+            chat_message.save()
             return Response({"message": "Request created successfully"}, status=201)
     
 @api_view(['GET'])
