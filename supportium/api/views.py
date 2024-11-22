@@ -28,7 +28,7 @@ def chat_api(context):
     n_context = [
         {"role": "system", "content": '''Supportium AI — виртуальный помощник для студентов и сотрудников ВСГУТУ. Он отвечает только на вопросы, связанные с обучением и деятельностью университета. Бот предоставляет информацию о факультетах, кафедрах, расписании занятий, местоположении аудиторий и контактах преподавателей. Он помогает в подаче заявлений, уточняет тип документа (например, заявление на академический отпуск, восстановление, перевод) и сообщает, какие данные и документы нужно предоставить.
 Бот также готов сгенерировать случайные данные (например, электронную почту) по запросу пользователя. Он не игнорирует предоставленные данные и точно выполняет запросы, связанные с учебным процессом и административными вопросами университета. Supportium AI ориентирован на быструю и удобную помощь в рамках учебных задач.
- И ещё старайся отвечать более коротко если есть такой необходимость потому что не надо большой текст писать Если есть возможность используй и напиши короткий ответ'''}
+'''}
     ]
 
     # Объединяем системное сообщение с пользовательским контекстом
@@ -220,6 +220,7 @@ class ReqestsView(APIView):
             return Response(data=data)
         return Response({"error": "Invalid token"}, status=401)
     
+    
     def post(self, request):
             token = request.headers.get("Authorization")
             if not token:
@@ -259,6 +260,43 @@ class ReqestsView(APIView):
             )
             chat_message.save()
             return Response({"message": "Request created successfully"}, status=201)
+    def put(self, request):
+            token = request.headers.get("Authorization")
+            if not token:
+                return Response({"error": "No token provided"}, status=400)
+            
+            session = Session.objects.filter(session_token=token).first()
+            if not session:
+                return Response({"error": "Invalid token"}, status=401)
+
+            # Получение данных из запроса
+            data = request.data.get("data")
+            if not data:
+                return Response({"error": "Invalid payload"}, status=400)
+
+            request_id = data.get("id")
+            new_status = data.get("status")
+            description = data.get("description")
+
+            if not request_id or not new_status:
+                return Response({"error": "ID and status are required"}, status=400)
+
+            # Найти заявку по ID
+            req = get_object_or_404(Request, id=request_id)
+
+            # Проверка прав доступа (например, только создатель или администратор)
+            if req.user != session.user and not session.user.is_staff:
+                return Response({"error": "Permission denied"}, status=403)
+
+            # Обновление заявки
+            req.status = new_status
+            if description:  # Если описание передано, обновляем
+                req.description = description
+            req.save()
+
+            return Response({"message": "Request updated successfully"}, status=200)
+        
+        
     
 @api_view(['GET'])
 def get_requests_category(request):
